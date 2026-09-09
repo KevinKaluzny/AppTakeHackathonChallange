@@ -37,7 +37,7 @@
     "start-infra": "docker-compose up",
     "stop-infra": "docker-compose down",
     "cy:verify": "cypress verify",
-    "sbom": "npm ci --prefix tools/sbom --ignore-scripts && npm --prefix tools/sbom run generate",
+    "sbom": "node tools/sbom/generate.js",
     "test:challenge": "node --test test/challenge/*.test.js"
   },
   "devDependencies": {

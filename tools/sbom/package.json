@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "generate": "cyclonedx-npm ../../package-lock.json --omit dev --output-format JSON --output-file ../../sbom.json"
+    "generate": "cyclonedx-npm ../../package-lock.json --package-lock-only --omit dev --output-format JSON --output-file ../../sbom.json"
   },
   "dependencies": {
     "@cyclonedx/cyclonedx-npm": "4.0.3"
