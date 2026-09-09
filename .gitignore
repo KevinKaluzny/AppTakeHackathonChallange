@@ -26,6 +26,13 @@ test/e2e/videos/
 # ignore sensitive files
 .env.local
 .env
+.env.*
 
 # ignore Snyk Code scanner files
 .dccache
+
+# Challenge release artifacts and organizer workspace
+*.map
+.release-work/
+organizer/
+.worktrees/

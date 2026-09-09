@@ -1,162 +1,161 @@
-# NodeGoat
+# Mixeway Flow Hackathon Challenge
 
-Being lightweight, fast, and scalable, Node.js is becoming a widely adopted platform for developing web applications. This project provides an environment to learn how OWASP Top 10 security risks apply to web applications developed using Node.js and how to effectively address them.
+This repository is a **Mixeway Flow Software Composition Analysis (SCA) challenge** built on top of [OWASP NodeGoat](https://github.com/OWASP/NodeGoat). Your goal is to import the project's SBOM into Mixeway Flow, review SCA findings, remediate at least one vulnerable dependency, regenerate the SBOM, and verify your progress with the local checker script.
 
-## Getting Started
+## Important safety warning
 
-OWASP Top 10 for Node.js web applications:
+**This application is intentionally vulnerable.** It exists solely for security training and SCA practice. Do **not** deploy it to production, expose it to the public internet, or run it outside an isolated lab environment. Use disposable credentials and treat all data in this application as untrusted.
 
-### Know it!
+## Prerequisites
 
-This application bundled a tutorial page that explains the OWASP Top 10 vulnerabilities and how to fix them.
+Before you begin, make sure you have:
 
-Once the application is running, you can access the tutorial page at [http://localhost:4000/tutorial](http://localhost:4000/tutorial) (or the port you have configured).
+- **Node.js 20 or later** and **npm**
+- A **Mixeway Flow account** with access to [flow.mixeway.io](https://flow.mixeway.io)
+- A **Git client** for committing and pushing your changes
+- (Optional) **MongoDB** if you want to run the NodeGoat application locally — see [UPSTREAM.md](UPSTREAM.md) for the original NodeGoat setup instructions
 
-### Do it!
+You do **not** need to run the application to complete this challenge. The SCA workflow uses the committed `sbom.json` and your dependency changes.
 
-[A Vulnerable Node.js App for Ninjas](http://nodegoat.herokuapp.com/) to exploit, toast, and fix. You may like to [set up your own copy](#how-to-set-up-your-copy-of-nodegoat) of the app to fix and test vulnerabilities. Hint: Look for comments in the source code.
+## Challenge overview
 
-##### Default user accounts
+1. Manually upload the root `sbom.json` to your Mixeway Flow code repository.
+2. Review the SCA findings Flow reports.
+3. Upgrade or replace at least one vulnerable dependency.
+4. Regenerate the SBOM with `npm run sbom`.
+5. Commit and push your dependency changes and the updated `sbom.json`.
+6. Manually upload the new `sbom.json` to the same Flow code repository.
+7. Wait until Flow finishes processing the upload.
+8. Run the verifier script with your API key and repository ID.
+9. Receive the flag when Flow reports fewer active SCA findings than the challenge baseline.
 
-The database comes pre-populated with these user accounts created as part of the seed data -
-* Admin Account - u:`admin` p:`Admin_123`
-* User Accounts (u:`user1` p:`User1_123`), (u:`user2` p:`User2_123`)
-* New users can also be added using the sign-up page.
+## Step-by-step workflow
 
-## How to Set Up Your Copy of NodeGoat
+### 1. Clone this repository
 
-### OPTION 1 - Run NodeGoat on your machine
+```bash
+git clone <your-challenge-repo-url>
+cd <repo-directory>
+npm install
+```
 
-1) Install [Node.js](http://nodejs.org/) - NodeGoat requires Node v8 or above
+### 2. Create or open a Mixeway Flow code repository
 
-2) Clone the github repository:
-   ```
-   git clone https://github.com/OWASP/NodeGoat.git
-   ```
+Sign in to [flow.mixeway.io](https://flow.mixeway.io) and create a new **code repository** (or open an existing one dedicated to this challenge). You will upload SBOMs to this repository.
 
-3) Go to the directory:
-   ```
-   cd NodeGoat
-   ```
+### 3. Initial manual SBOM upload
 
-4) Install node packages:
-   ```
-   npm install
-   ```
+The repository root contains a CycloneDX `sbom.json` generated from the pinned dependency lockfile.
 
-5) Set up MongoDB. You can either install MongoDB locally or create a remote instance:
+**Manually upload** this file into your Flow code repository through the Flow UI. Do not commit API keys or store credentials in this repository — upload the SBOM file directly in the web interface.
 
-   * Using local MongoDB:
-     1) Install [MongoDB Community Server](https://docs.mongodb.com/manual/administration/install-community/)
-     2) Start [mongod](http://docs.mongodb.org/manual/reference/program/mongod/#bin.mongod)
+After upload, wait for Flow to finish processing before reviewing findings.
 
-   * Using remote MongoDB instance:
-     1) [Deploy a MongoDB Atlas free tier cluster](https://docs.atlas.mongodb.com/tutorial/deploy-free-tier-cluster/) (M0 Sandbox)
-     2) [Enable network access](https://docs.atlas.mongodb.com/security/add-ip-address-to-list/) to the cluster from your current IP address
-     3) [Add a database user](https://docs.atlas.mongodb.com/tutorial/create-mongodb-user-for-cluster/) to the cluster
-     4) Set the `MONGODB_URI` environment variable to the connection string of your cluster, which can be viewed in the cluster's
-        [connect dialog](https://docs.atlas.mongodb.com/tutorial/connect-to-your-cluster/#connect-to-your-atlas-cluster). Select "Connect your application",
-        set the driver to "Node.js" and the version to "2.2.12 or later". This will give a connection string in the form:
-        ```
-        mongodb://<username>:<password>@<cluster>/<dbname>?ssl=true&replicaSet=<rsname>&authSource=admin&retryWrites=true&w=majority
-        ```
-        The `<username>` and `<password>` fields need filling in with the details of the database user added earlier. The `<dbname>` field sets the name of the
-        database nodegoat will use in the cluster (eg "nodegoat"). The other fields will already be filled in with the correct details for your cluster.
+### 4. Review SCA findings
 
-6) Populate MongoDB with the seed data required for the app:
-   ```
-   npm run db:seed
-   ```
-   By default this will use the "development" configuration, but the desired config can be passed as an argument if required.
+In Flow, open your code repository and review the **SCA** (Software Composition Analysis) findings. Note which dependencies are flagged and what versions are recommended.
 
-7) Start the server. You can run the server using node or nodemon:
-   * Start the server with node. This starts the NodeGoat application at [http://localhost:4000/](http://localhost:4000/):
-     ```
-     npm start
-     ```
-   * Start the server with nodemon, which will automatically restart the application when you make any changes. This starts the NodeGoat application at [http://localhost:5000/](http://localhost:5000/):
-     ```
-     npm run dev
-     ```
+The verifier counts only findings where `source === "SCA"` and `status !== "REMOVED"`. Remediated findings that Flow marks as removed will not count toward your total.
 
-#### Customizing the Default Application Configuration
+### 5. Remediate at least one dependency
 
-By default the application will be hosted on port 4000 and will connect to a MongoDB instance at localhost:27017. To change this set the environment variables `PORT` and `MONGODB_URI`.
+Edit `package.json` (and let npm update the lockfile) to upgrade or replace at least one dependency that contributes to an active SCA finding. For example:
 
-Other settings can be changed by updating the [config file](https://github.com/OWASP/NodeGoat/blob/master/config/env/all.js).
+```bash
+npm install <package>@<safe-version> --save
+```
 
-### OPTION 2 - Run NodeGoat on Docker
+Choose a remediation that Flow will recognize after you upload a fresh SBOM.
 
-The repo includes the Dockerfile and docker-compose.yml necessary to set up the app and db instance, then connect them together.
+### 6. Regenerate the SBOM
 
-1) Install [docker](https://docs.docker.com/installation/) and [docker compose](https://docs.docker.com/compose/install/) 
+After changing dependencies, regenerate the CycloneDX SBOM at the repository root:
 
-2) Clone the github repository:
-   ```
-   git clone https://github.com/OWASP/NodeGoat.git
-   ```
+```bash
+npm run sbom
+```
 
-3) Go to the directory:
-   ```
-   cd NodeGoat
-   ```
+Review the updated `sbom.json`, then commit both your dependency changes and the regenerated file:
 
-4) Build the images:
-   ```
-   docker-compose build
-   ```
+```bash
+git add package.json package-lock.json sbom.json
+git commit -m "fix: remediate vulnerable dependency"
+git push
+```
 
-5) Run the app, this starts the NodeGoat application at http://localhost:4000/:
-   ```
-   docker-compose up
-   ```
+### 7. Second manual SBOM upload
 
-### OPTION 3 - Deploy to Heroku
+**Manually upload** the new `sbom.json` to the **same** Mixeway Flow code repository. Flow must process this updated SBOM before the verifier can succeed.
 
-This option uses a free ($0/month) Heroku node server.
+### 8. Wait for processing
 
-Though not essential, it is recommended that you fork this repository and deploy the forked repo.
-This will allow you to fix vulnerabilities in your own forked version, then deploy and test it on Heroku.
+Allow time for Flow to ingest and analyze the new SBOM. If the verifier reports that your finding count has not decreased, confirm that:
 
-1) Set up a publicly accessible MongoDB instance:
-   1) [Deploy a MongoDB Atlas free tier cluster](https://docs.atlas.mongodb.com/tutorial/deploy-free-tier-cluster/) (M0 Sandbox)
-   2) [Enable network access](https://docs.atlas.mongodb.com/security/ip-access-list/#add-ip-access-list-entries) to the cluster from anywhere (CIDR range 0.0.0.0/0)
-   3) [Add a database user](https://docs.atlas.mongodb.com/tutorial/create-mongodb-user-for-cluster/) to the cluster
+- The upload completed successfully in the Flow UI.
+- Processing has finished (refresh the findings view).
+- Your dependency change actually reduced active SCA findings.
 
-2) Deploy NodeGoat to Heroku by clicking the button below:
+### 9. Generate a Flow API key
 
-   [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+In the Mixeway Flow UI, create an **API key** for your account. You will pass this value to the verifier script.
 
-   In the Create New App dialog, set the `MONGODB_URI` config var to the connection string of your MongoDB Atlas cluster.
-   This can be viewed in the cluster's [connect dialog](https://docs.atlas.mongodb.com/tutorial/connect-to-your-cluster/#connect-to-your-atlas-cluster).
-   Select "Connect your application", set the driver to "Node.js" and the version to "2.2.12 or later".
-   This will give a connection string in the form:
-   ```
-   mongodb://<username>:<password>@<cluster>/<dbname>?ssl=true&replicaSet=<rsname>&authSource=admin&retryWrites=true&w=majority
-   ```
-   The `<username>` and `<password>` fields need filling in with the details of the database user added earlier. The `<dbname>` field sets the name of the
-   database nodegoat will use in the cluster (eg "nodegoat"). The other fields will already be filled in with the correct details for your cluster.
+**Credential safety:**
 
-## Report bugs, Feedback, Comments
+- Pass the API key only on the command line or in your shell session — **never** commit it to Git, write it to `.env` files in this repository, or share it in chat or screenshots.
+- The verifier sends the key only to `https://flow.mixeway.io` and does not write it to disk or include it in error messages.
+- Revoke and regenerate the key if you accidentally expose it.
 
-*  Open a new [issue](https://github.com/OWASP/NodeGoat/issues) or contact team by joining chat at [Slack](https://owasp.slack.com/messages/project-nodegoat/) or [![Join the chat at https://gitter.im/OWASP/NodeGoat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OWASP/NodeGoat?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+### 10. Find your code repository ID
 
-## Contributing
+Each Flow code repository has a numeric **repository ID**. You can find it in the Flow UI (typically in the repository URL or details panel). The verifier expects a positive integer, for example `42`.
 
-Please Follow [the contributing guide](CONTRIBUTING.md)
+The verifier queries:
 
-## Code Of Conduct (CoC)
+```
+GET https://flow.mixeway.io/api/v1/coderepo/{repo_id}/findings
+```
 
-This project is bound by a [Code of Conduct](CODE_OF_CONDUCT.md).
+with the header `X-API-KEY: <your-api-key>`.
 
-## Contributors
+### 11. Run the verifier
 
-Here are the amazing [contributors](https://github.com/OWASP/NodeGoat/graphs/contributors) to the NodeGoat project.
+From the repository root, run:
 
-## Supports
+```bash
+./script --apikey <FLOW_API_KEY> --repo_id <CODE_REPOSITORY_ID>
+```
 
-- Thanks to JetBrains for providing licenses to fantastic [WebStorm IDE](https://www.jetbrains.com/webstorm/) to build this project.
+Replace `<FLOW_API_KEY>` with your API key and `<CODE_REPOSITORY_ID>` with your Flow code repository ID.
 
-## License
+On success, the script prints the current and baseline SCA counts and reveals the challenge flag.
 
-Code licensed under the [Apache License v2.0.](http://www.apache.org/licenses/LICENSE-2.0)
+## Verifier exit codes
+
+Use these exit codes to troubleshoot problems:
+
+| Exit code | Meaning | What to check |
+|-----------|---------|---------------|
+| **0** | Success — active SCA count is below the baseline; flag displayed | — |
+| **2** | Usage error — missing, duplicate, or malformed arguments | Provide both `--apikey` and `--repo_id` exactly once |
+| **3** | API or network error — timeout, connection failure, HTTP error, or redirect | Verify API key, network access, and that `flow.mixeway.io` is reachable |
+| **4** | Malformed response — Flow returned invalid JSON or a non-array body | Retry after Flow finishes processing; contact organizers if it persists |
+| **5** | Unsolved — active SCA count is equal to or higher than the baseline | Confirm you remediated a dependency, regenerated and uploaded the new SBOM, and waited for processing |
+
+Run `./script` with no arguments to see usage help (exit code 2).
+
+## Local smoke checks
+
+Verify the SBOM tooling works in your environment:
+
+```bash
+npm run sbom
+npm run test:challenge
+```
+
+These commands do not contact Mixeway Flow and do not require an API key.
+
+## Upstream attribution
+
+This challenge vendors **OWASP NodeGoat** at commit `c5cb68a7084e4ae7dcc60e6a98768720a81841e8`. NodeGoat is licensed under the Apache License 2.0 — see [LICENSE](LICENSE) and [UPSTREAM.md](UPSTREAM.md).
+
+Challenge-specific files (SBOM tooling, verifier script, and this documentation) are identified by this repository's Git history.
