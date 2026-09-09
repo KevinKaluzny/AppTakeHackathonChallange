@@ -100,7 +100,9 @@ git commit -m "feat: vendor pinned OWASP NodeGoat application"
 
 **Files:**
 - Modify: `package.json`
-- Modify: `package-lock.json`
+- Preserve unchanged: `package-lock.json`
+- Create: `tools/sbom/package.json`
+- Create: `tools/sbom/package-lock.json`
 - Create: `test/challenge/sbom.test.js`
 - Create: `sbom.json`
 
@@ -142,18 +144,35 @@ node --test test/challenge/sbom.test.js
 
 Expected: FAIL because `sbom.json` does not exist.
 
-- [ ] **Step 3: Pin the generator and add scripts**
+- [ ] **Step 3: Pin the generator in an isolated tool package and add scripts**
+
+Create `tools/sbom/package.json`:
+
+```json
+{
+  "name": "flow-challenge-sbom-tool",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "generate": "cyclonedx-npm ../../package-lock.json --omit dev --output-format JSON --output-file ../../sbom.json"
+  },
+  "dependencies": {
+    "@cyclonedx/cyclonedx-npm": "4.0.3"
+  }
+}
+```
 
 Run:
 
 ```bash
-npm install --save-dev --ignore-scripts @cyclonedx/cyclonedx-npm@4.0.3
+npm install --prefix tools/sbom --ignore-scripts --package-lock-only
 npm pkg set \
-  'scripts.sbom=cyclonedx-npm --omit dev --output-format JSON --output-file sbom.json' \
+  'scripts.sbom=npm ci --prefix tools/sbom --ignore-scripts && npm --prefix tools/sbom run generate' \
   'scripts.test:challenge=node --test test/challenge/*.test.js'
+git diff --exit-code -- package-lock.json
 ```
 
-Expected: `package.json` names `@cyclonedx/cyclonedx-npm` version `4.0.3`, and the lockfile records the exact resolved dependency graph.
+Expected: `tools/sbom/package.json` pins `@cyclonedx/cyclonedx-npm` exactly to `4.0.3`, its separate lockfile records the tool dependency graph, and NodeGoat's root `package-lock.json` remains byte-for-byte unchanged.
 
 - [ ] **Step 4: Generate the initial SBOM**
 
@@ -178,7 +197,7 @@ Expected: PASS for the CycloneDX document and Express component checks.
 - [ ] **Step 6: Commit SBOM support**
 
 ```bash
-git add package.json package-lock.json sbom.json test/challenge/sbom.test.js
+git add package.json tools/sbom/package.json tools/sbom/package-lock.json sbom.json test/challenge/sbom.test.js
 git commit -m "feat: add reproducible CycloneDX SBOM"
 ```
 
