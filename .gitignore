@@ -36,3 +36,5 @@ test/e2e/videos/
 .release-work/
 organizer/
 .worktrees/
+docs/superpowers/
+.superpowers/

@@ -13,7 +13,7 @@ Before you begin, make sure you have:
 - **Node.js 20 or later** and **npm**
 - A **Mixeway Flow account** with access to [flow.mixeway.io](https://flow.mixeway.io)
 - A **Git client** for committing and pushing your changes
-- (Optional) **MongoDB** if you want to run the NodeGoat application locally — see [UPSTREAM.md](UPSTREAM.md) for the original NodeGoat setup instructions
+- (Optional) **MongoDB** if you want to run the NodeGoat application locally — see the [upstream NodeGoat README](https://github.com/OWASP/NodeGoat#readme) for setup instructions
 
 You do **not** need to run the application to complete this challenge. The SCA workflow uses the committed `sbom.json` and your dependency changes.
 
@@ -36,8 +36,9 @@ You do **not** need to run the application to complete this challenge. The SCA w
 ```bash
 git clone <your-challenge-repo-url>
 cd <repo-directory>
-npm install
 ```
+
+Do not run a full root `npm install`; completing the challenge does not require installing the intentionally vulnerable application.
 
 ### 2. Create or open a Mixeway Flow code repository
 
@@ -59,13 +60,13 @@ The verifier counts only findings where `source === "SCA"` and `status !== "REMO
 
 ### 5. Remediate at least one dependency
 
-Edit `package.json` (and let npm update the lockfile) to upgrade or replace at least one dependency that contributes to an active SCA finding. For example:
+Use npm's lockfile-only mode to upgrade or replace at least one dependency that contributes to an active SCA finding:
 
 ```bash
-npm install <package>@<safe-version> --save
+npm install <package>@<safe-version> --save --package-lock-only --ignore-scripts
 ```
 
-Choose a remediation that Flow will recognize after you upload a fresh SBOM.
+This updates `package.json` and `package-lock.json` without installing the application or running package scripts. Modern npm versions may produce a large lockfile-format diff in this old project; review that diff along with the intended dependency change. Choose a remediation that Flow will recognize after you upload a fresh SBOM.
 
 ### 6. Regenerate the SBOM
 
@@ -74,6 +75,8 @@ After changing dependencies, regenerate the CycloneDX SBOM at the repository roo
 ```bash
 npm run sbom
 ```
+
+This generator installs its pinned tooling under `tools/sbom` and therefore needs npm registry access. It does not perform a full root dependency install.
 
 Review the updated `sbom.json`, then commit both your dependency changes and the regenerated file:
 
@@ -125,6 +128,12 @@ From the repository root, run:
 ./script --apikey <FLOW_API_KEY> --repo_id <CODE_REPOSITORY_ID>
 ```
 
+On Windows, invoke the verifier through Node:
+
+```powershell
+node script --apikey <FLOW_API_KEY> --repo_id <CODE_REPOSITORY_ID>
+```
+
 Replace `<FLOW_API_KEY>` with your API key and `<CODE_REPOSITORY_ID>` with your Flow code repository ID.
 
 On success, the script prints the current and baseline SCA counts and reveals the challenge flag.
@@ -136,6 +145,7 @@ Use these exit codes to troubleshoot problems:
 | Exit code | Meaning | What to check |
 |-----------|---------|---------------|
 | **0** | Success — active SCA count is below the baseline; flag displayed | — |
+| **1** | Unexpected internal error | Retry once; if it persists, contact the challenge organizers |
 | **2** | Usage error — missing, duplicate, or malformed arguments | Provide both `--apikey` and `--repo_id` exactly once |
 | **3** | API or network error — timeout, connection failure, HTTP error, or redirect | Verify API key, network access, and that `flow.mixeway.io` is reachable |
 | **4** | Malformed response — Flow returned invalid JSON or a non-array body | Retry after Flow finishes processing; contact organizers if it persists |
@@ -152,7 +162,7 @@ npm run sbom
 npm run test:challenge
 ```
 
-These commands do not contact Mixeway Flow and do not require an API key.
+These commands do not contact Mixeway Flow and do not require an API key. `npm run sbom` does contact the npm registry to install its pinned generator tooling.
 
 ## Upstream attribution
 
