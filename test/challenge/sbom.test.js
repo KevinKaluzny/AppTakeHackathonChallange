@@ -43,6 +43,8 @@ test(
   (t) => {
     const bin = fs.mkdtempSync(path.join(os.tmpdir(), "sbom-npm-shim-"));
     t.after(() => fs.rmSync(bin, { recursive: true, force: true }));
+    const sbomPath = path.join(root, "sbom.json");
+    const originalSbom = fs.readFileSync(sbomPath);
 
     const marker = path.join(bin, "invoked");
     fs.writeFileSync(
@@ -55,25 +57,33 @@ test(
       `@type nul > "%FAKE_NPM_MARKER%"\r\n@exit /b 97\r\n`
     );
 
-    const result = spawnSync(
-      process.execPath,
-      [process.env.npm_execpath, "run", "sbom"],
-      {
-        cwd: root,
-        encoding: "utf8",
-        env: {
-          ...process.env,
-          FAKE_NPM_MARKER: marker,
-          PATH: `${bin}${path.delimiter}${process.env.PATH || ""}`,
-        },
-      }
-    );
+    try {
+      const result = spawnSync(
+        process.execPath,
+        [process.env.npm_execpath, "run", "sbom"],
+        {
+          cwd: root,
+          encoding: "utf8",
+          env: {
+            ...process.env,
+            FAKE_NPM_MARKER: marker,
+            PATH: `${bin}${path.delimiter}${process.env.PATH || ""}`,
+          },
+        }
+      );
 
-    assert.equal(
-      result.status,
-      0,
-      `npm run sbom failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`
-    );
-    assert.equal(fs.existsSync(marker), false, "the PATH npm shim was invoked");
+      assert.equal(
+        result.status,
+        0,
+        `npm run sbom failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`
+      );
+      assert.equal(
+        fs.existsSync(marker),
+        false,
+        "the PATH npm shim was invoked"
+      );
+    } finally {
+      fs.writeFileSync(sbomPath, originalSbom);
+    }
   }
 );
