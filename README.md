@@ -151,7 +151,7 @@ Use these exit codes to troubleshoot problems:
 | **4** | Malformed response — Flow returned invalid JSON or a non-array body | Retry after Flow finishes processing; contact organizers if it persists |
 | **5** | Unsolved — active SCA count is equal to or higher than the baseline | Confirm you remediated a dependency, regenerated and uploaded the new SBOM, and waited for processing |
 
-Run `./script` with no arguments to see usage help (exit code 2).
+Run `./script` (POSIX) or `node script` (Windows) with no arguments to see usage help (exit code 2).
 
 ## Local smoke checks
 

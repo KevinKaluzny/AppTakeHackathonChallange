@@ -38,7 +38,7 @@
     "stop-infra": "docker-compose down",
     "cy:verify": "cypress verify",
     "sbom": "node tools/sbom/generate.js",
-    "test:challenge": "node --test test/challenge"
+    "test:challenge": "node --test test/challenge/docs.test.js test/challenge/sbom.test.js test/challenge/verifier.test.js"
   },
   "devDependencies": {
     "async": "^2.0.0-rc.4",
