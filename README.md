@@ -1,6 +1,6 @@
 # Mixeway Flow Hackathon Challenge
 
-This repository is a **Mixeway Flow Software Composition Analysis (SCA) challenge** built on top of [OWASP NodeGoat](https://github.com/OWASP/NodeGoat). Your goal is to import the project's SBOM into Mixeway Flow, review SCA findings, remediate at least one vulnerable dependency, regenerate the SBOM, and verify your progress with the local checker script.
+This repository is a **Mixeway Flow Software Composition Analysis (SCA) challenge** built on top of [OWASP NodeGoat](https://github.com/OWASP/NodeGoat). Your goal is to fork and import the repository into Mixeway Flow, review SCA findings from the automatic initial scan, remediate at least one vulnerable dependency, regenerate and manually upload the updated SBOM, and verify your progress with the local checker script.
 
 ## Important safety warning
 
@@ -19,46 +19,89 @@ You do **not** need to run the application to complete this challenge. The SCA w
 
 ## Challenge overview
 
-1. Manually upload the root `sbom.json` to your Mixeway Flow code repository.
-2. Review the SCA findings Flow reports.
-3. Upgrade or replace at least one vulnerable dependency.
-4. Regenerate the SBOM with `npm run sbom`.
-5. Commit and push your dependency changes and the updated `sbom.json`.
-6. Manually upload the new `sbom.json` to the same Flow code repository.
-7. Wait until Flow finishes processing the upload.
-8. Run the verifier script with your API key and repository ID.
-9. Receive the flag when Flow reports fewer active SCA findings than the challenge baseline.
+1. Fork this repository to your GitHub account.
+2. Sign in to Mixeway Flow with GitHub and import your fork as a **Single Repository**.
+3. Wait for the automatic initial scan; do not upload the original SBOM manually.
+4. Review the SCA findings Flow reports.
+5. Upgrade or replace at least one vulnerable dependency.
+6. Regenerate the SBOM with `npm run sbom`, then commit and push your changes.
+7. After the scan throttle expires, manually upload the new `sbom.json`.
+8. Wait until Flow finishes processing the updated SBOM.
+9. Run the verifier script with your Flow API key and repository ID.
+10. Receive the flag when Flow reports fewer active SCA findings than the challenge baseline.
 
 ## Step-by-step workflow
 
-### 1. Clone this repository
+### 1. Fork and clone this repository
+
+Open the challenge repository on GitHub and select **Fork**. Create the fork
+under your own GitHub account; Mixeway Flow must scan your fork so that you
+can push the dependency fix.
+
+Clone your fork, not the original challenge repository:
 
 ```bash
-git clone <your-challenge-repo-url>
+git clone https://github.com/<your-username>/<fork-name>.git
 cd <repo-directory>
 ```
 
 Do not run a full root `npm install`; completing the challenge does not require installing the intentionally vulnerable application.
 
-### 2. Create or open a Mixeway Flow code repository
+### 2. Sign in to Mixeway Flow
 
-Sign in to [flow.mixeway.io](https://flow.mixeway.io) and create a new **code repository** (or open an existing one dedicated to this challenge). You will upload SBOMs to this repository. **You cannot register repository unlesss You fork it into Your account.**
+Open [flow.mixeway.io](https://flow.mixeway.io) and choose **Sign in with GitHub**.
+Use the same GitHub account that owns your fork.
 
-### 3. Initial manual SBOM upload
+### 3. Create a GitHub personal access token
 
-The repository root contains a CycloneDX `sbom.json` generated from the pinned dependency lockfile.
+In GitHub, create a **fine-grained personal access token** for Flow:
 
-**Manually upload** this file into your Flow code repository through the Flow UI. Do not commit API keys or store credentials in this repository — upload the SBOM file directly in the web interface.
+1. Open **Settings → Developer settings → Personal access tokens →
+   Fine-grained tokens**.
+2. Create a token restricted to your fork.
+3. Grant repository **Contents: Read-only** access. GitHub grants metadata
+   access automatically.
+4. Copy the token when GitHub displays it; you will enter it into Flow once.
 
-After upload, wait for Flow to finish processing before reviewing findings.
+Use a workshop-only token with the shortest practical expiration. Never commit
+it, paste it into the repository, or share it in screenshots. Revoke it after
+the workshop.
 
-### 4. Review SCA findings
+### 4. Import your fork into Flow
+
+On the Flow dashboard:
+
+1. Select **Single Repository**.
+2. For the Git provider/repository type, select **GitHub**.
+3. In **Repository URL**, enter the full URL of your fork, for example
+   `https://github.com/<your-username>/<fork-name>`.
+4. In **Access Token**, enter the fine-grained GitHub token from the previous
+   step.
+5. In **Team**, select the only available personal team. Its name contains
+   your username.
+6. Confirm the import.
+
+The GitHub personal access token authenticates Flow when it reads your fork.
+It is different from the Flow API key used by the verifier later.
+
+### 5. Wait for the automatic initial scan
+
+Importing the repository **automatically starts the initial scan**. The
+committed root `sbom.json` is processed during that scan, so do not manually
+upload the original SBOM.
+
+The scan normally takes several minutes. On the repository list, select the
+**magnifying-glass** action beside your imported repository, then open
+**Scan Info** to monitor scan history and status. Continue only after the
+initial scan has completed and the SCA findings are visible.
+
+### 6. Review SCA findings
 
 In Flow, open your code repository and review the **SCA** (Software Composition Analysis) findings. Note which dependencies are flagged and what versions are recommended.
 
 The verifier counts only findings where `source === "SCA"` and `status !== "REMOVED"`. Remediated findings that Flow marks as removed will not count toward your total.
 
-### 5. Remediate at least one dependency
+### 7. Remediate at least one dependency
 
 Use npm's lockfile-only mode to upgrade or replace at least one dependency that contributes to an active SCA finding:
 
@@ -68,7 +111,7 @@ npm install <package>@<safe-version> --save --package-lock-only --ignore-scripts
 
 This updates `package.json` and `package-lock.json` without installing the application or running package scripts. Modern npm versions may produce a large lockfile-format diff in this old project; review that diff along with the intended dependency change. Choose a remediation that Flow will recognize after you upload a fresh SBOM.
 
-### 6. Regenerate the SBOM
+### 8. Regenerate and push the SBOM
 
 After changing dependencies, regenerate the CycloneDX SBOM at the repository root:
 
@@ -86,19 +129,30 @@ git commit -m "fix: remediate vulnerable dependency"
 git push
 ```
 
-### 7. Second manual SBOM upload
+### 9. Upload the regenerated SBOM manually
 
-**Manually upload** the new `sbom.json` to the **same** Mixeway Flow code repository. Flow must process this updated SBOM before the verifier can succeed.
+Flow prevents another scan of the same repository for **10 minutes after a
+scan starts**. Before uploading, ensure the automatic initial scan has
+finished and at least 10 minutes have elapsed since the repository import
+started it. Uploading sooner may be rejected as throttled.
 
-### 8. Wait for processing
+In the imported repository:
 
-Allow time for Flow to ingest and analyze the new SBOM. If the verifier reports that your finding count has not decreased, confirm that:
+1. Open the **Scan** menu.
+2. Choose **Upload SBOM (SCA only)**.
+3. Select the regenerated `sbom.json`.
+4. Select the repository branch that contains your fix.
+5. Choose **Upload & scan**.
+
+This starts an SCA-only scan. Wait for processing to finish and use **Scan
+Info** to monitor its status. If the verifier reports that your finding count
+has not decreased, confirm that:
 
 - The upload completed successfully in the Flow UI.
 - Processing has finished (refresh the findings view).
 - Your dependency change actually reduced active SCA findings.
 
-### 9. Generate a Flow API key
+### 10. Generate a Flow API key
 
 In the Mixeway Flow UI, create an **API key** for your account. You will pass this value to the verifier script.
 
@@ -108,7 +162,7 @@ In the Mixeway Flow UI, create an **API key** for your account. You will pass th
 - The verifier sends the key only to `https://flow.mixeway.io` and does not write it to disk or include it in error messages.
 - Revoke and regenerate the key if you accidentally expose it.
 
-### 10. Find your code repository ID
+### 11. Find your code repository ID
 
 Each Flow code repository has a numeric **repository ID**. You can find it in the Flow UI (typically in the repository URL or details panel). The verifier expects a positive integer, for example `42`.
 
@@ -120,7 +174,7 @@ GET https://flow.mixeway.io/api/v1/coderepo/{repo_id}/findings
 
 with the header `X-API-KEY: <your-api-key>`.
 
-### 11. Run the verifier
+### 12. Run the verifier
 
 From the repository root, run:
 
