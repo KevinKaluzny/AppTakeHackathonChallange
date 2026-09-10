@@ -42,7 +42,7 @@ Do not run a full root `npm install`; completing the challenge does not require 
 
 ### 2. Create or open a Mixeway Flow code repository
 
-Sign in to [flow.mixeway.io](https://flow.mixeway.io) and create a new **code repository** (or open an existing one dedicated to this challenge). You will upload SBOMs to this repository.
+Sign in to [flow.mixeway.io](https://flow.mixeway.io) and create a new **code repository** (or open an existing one dedicated to this challenge). You will upload SBOMs to this repository. **You cannot register repository unlesss You fork it into Your account.**
 
 ### 3. Initial manual SBOM upload
 
