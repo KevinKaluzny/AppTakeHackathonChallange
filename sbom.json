@@ -3,9 +3,9 @@
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
   "version": 1,
-  "serialNumber": "urn:uuid:9f5fd63d-e352-4693-8d33-7806b43100bc",
+  "serialNumber": "urn:uuid:60ceedde-e051-4aed-b12e-fffb1508e8c4",
   "metadata": {
-    "timestamp": "2026-09-17T10:28:50.779Z",
+    "timestamp": "2026-09-17T10:51:45.283Z",
     "tools": {
       "components": [
         {
@@ -815,17 +815,17 @@
     {
       "type": "library",
       "name": "underscore",
-      "version": "1.12.1",
-      "bom-ref": "owasp-nodejs-goat@1.3.0|underscore@1.12.1",
-      "purl": "pkg:npm/underscore@1.12.1",
+      "version": "1.13.8",
+      "bom-ref": "owasp-nodejs-goat@1.3.0|underscore@1.13.8",
+      "purl": "pkg:npm/underscore@1.13.8",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/underscore/-/underscore-1.12.1.tgz",
+          "url": "https://registry.npmjs.org/underscore/-/underscore-1.13.8.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "84442dd3e64b0d550c85e6cac4be31d414ed0d8edb6af5687e167d299e1a236e97f5245a13e6379bcdd750bd543f68e7f329e39ddc020a91077541bef693f54f"
+              "content": "0d7b43dd9b4443373b33c9b8717a2dc8747e1404b5f02eb86ac058639bea65ec5f62bc8d3670dcd365b884a837add42ea8e61ab358e4b1e5f4fa76578d35e7bd"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -12302,7 +12302,7 @@
         "owasp-nodejs-goat@1.3.0|node-esapi@0.0.1",
         "owasp-nodejs-goat@1.3.0|serve-favicon@2.5.0",
         "owasp-nodejs-goat@1.3.0|swig@1.4.2",
-        "owasp-nodejs-goat@1.3.0|underscore@1.12.1"
+        "owasp-nodejs-goat@1.3.0|underscore@1.13.8"
       ]
     },
     {
@@ -12521,7 +12521,7 @@
       ]
     },
     {
-      "ref": "owasp-nodejs-goat@1.3.0|underscore@1.12.1"
+      "ref": "owasp-nodejs-goat@1.3.0|underscore@1.13.8"
     },
     {
       "ref": "owasp-nodejs-goat@1.3.0|bytes@3.0.0"
